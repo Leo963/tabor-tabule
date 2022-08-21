@@ -1,8 +1,7 @@
 const API_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRyYXZpYW5sdWtAZ21haWwuY29tIiwiaWQiOjE0MDcsIm5hbWUiOm51bGwsInN1cm5hbWUiOm51bGwsImlhdCI6MTY2MDg5NDEzMywiZXhwIjoxMTY2MDg5NDEzMywiaXNzIjoiZ29sZW1pbyIsImp0aSI6IjkzMTJkNDcxLTlmZDEtNDczNC04YmY5LWZkNmNjYTQ2ODQ5YiJ9.AWzqDvnGWCn3Y-yhY1bfkYl6mo35Ij6k18KMvj44UZk"
 const baseAPIpath = "https://api.golemio.cz/v2"
-const customAPIpath = "https://taborapi.fireup.studio"
-let stopsByZone = [];
 let timer;
+
 function httpGet(url){
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( "GET", url, false );
@@ -11,28 +10,11 @@ function httpGet(url){
     return xmlHttp.responseText;
 }
 
-function getStopsInZone(ev) {
-    document.querySelector("select#stops-select").replaceChildren()
-    let stopsInZone = [...new Set(stopsByZone[ev.target.value].map(x => x['properties']['stop_name']))]
-    console.log(stopsInZone)
-    for (let stop of stopsInZone.sort()) {
-        let opt = document.createElement('option');
-        opt.innerHTML = stop;
-        opt.value = stop;
-        document.querySelector("select#stops-select").appendChild(opt)
-    }
-}
-
-function getDepartures(ev) {
+function getDepartures(stop) {
     clearInterval(timer)
     document.getElementById('odjezdy').replaceChildren()
-    console.log(ev.target.value)
-    updateDepartures(ev.target.value)
-    timer = setInterval(updateDepartures.bind(null, ev.target.value),20*1000)
-    let link = document.createElement('a')
-    link.href = 'stop.html?stop=' + ev.target.value
-    link.innerHTML = 'Stálá tabule'
-    document.querySelector('.display').appendChild(link)
+    updateDepartures(stop)
+    timer = setInterval(updateDepartures.bind(null, stop),20*1000)
 }
 
 function updateDepartures(stop) {
@@ -63,16 +45,20 @@ function updateDepartures(stop) {
 }
 
 window.onload = function (ev) {
-    stopsByZone = JSON.parse(httpGet(customAPIpath + "/getStopsByZones"))
-    console.log(httpGet(customAPIpath+"/apikey"))
-    console.log(stopsByZone)
-    console.log(Object.keys(stopsByZone))
-    for (let zone in stopsByZone) {
-        let opt = document.createElement('option');
-        opt.innerHTML = opt.value = zone;
-        document.querySelector("select#zone-select").appendChild(opt)
-    }
-    document.querySelector("select#zone-select").addEventListener("change",getStopsInZone)
-    document.querySelector("select#stops-select").addEventListener("change",getDepartures)
+    const urlParams = new URLSearchParams(window.location.search)
+    const stop = urlParams.get('stop')
+    getDepartures(stop)
+    document.querySelector('h2#name').innerHTML = stop;
+    document.title = stop + ' - Odjezdová tabule'
+    showClock()
+    setInterval(showClock,1000)
 }
 
+function showClock() {
+    let date = new Date();
+    let h = date.getHours(); // 0 - 23
+    let m = date.getMinutes(); // 0 - 59
+    let s = date.getSeconds(); // 0 - 59
+
+    document.querySelector('h2#time').innerHTML = String(h).padStart(2,'0') + ":" + String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0')
+}
