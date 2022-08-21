@@ -26,13 +26,14 @@ function getStopsInZone(ev) {
 function getDepartures(ev) {
     clearInterval(timer)
     document.getElementById('odjezdy').replaceChildren()
+    document.getElementById('link').replaceChildren()
     console.log(ev.target.value)
     updateDepartures(ev.target.value)
     timer = setInterval(updateDepartures.bind(null, ev.target.value),20*1000)
     let link = document.createElement('a')
     link.href = 'stop.html?stop=' + ev.target.value
     link.innerHTML = 'Stálá tabule'
-    document.querySelector('.display').appendChild(link)
+    document.querySelector('#link').appendChild(link)
 }
 
 function updateDepartures(stop) {
